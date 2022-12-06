@@ -17,7 +17,6 @@ public class BankingCreditCLI {
     final static Scanner input = new Scanner(System.in);
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
         String[][] credential = new String[1][2];
         credential[0][0] = "admin";
         credential[0][1] = "admin";
