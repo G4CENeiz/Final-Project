@@ -119,6 +119,13 @@ final static Scanner input = new Scanner(System.in);
         System.out.print("menu: ");
         return input.next();
     }
+    static double powerDouble(double base, int exponent) {
+        if (exponent == 0) {
+            return 1;
+        } else {
+            return base * powerDouble(base, exponent-1);
+        }
+    }
     //endregion
     //region menu
     static void loginMenu(String[][] cred) {
@@ -247,8 +254,8 @@ final static Scanner input = new Scanner(System.in);
         int downPaymentPercentage = 10;
         int tenor;
         int price;
-        int installment;
-        float interest = 7.25f;
+        double installment;
+        double interest = 7.25;
         printHeading("MORTGAGE LOAN");
         System.out.println("""
                 Purpose of Credit
@@ -305,10 +312,11 @@ final static Scanner input = new Scanner(System.in);
                     i = false;
                 }
             } while (i);
-            installment = (price * (downPaymentPercentage/100) / 12) / (1 - 1 / (1 + (downPaymentPercentage/100) / 12) ^ (tenor * 12));
-            System.out.printf("%14s IDR%,d", "Installment", installment);
+            //installment = (price * (interest/100) / 12) / (1 - 1 / (1 + (interest/100) / 12) ^ (tenor * 12));
+            installment = (price * (interest/100) / 12) / powerDouble(1 - 1 / (1 + (interest/100) / 12), tenor * 12);
+            System.out.printf("%14s IDR%,f", "Installment", installment);
             System.out.printf("%14s IDR%,d", "Debt principal", (price - downPayment));
-            System.out.printf("%14s IDR%,d", "Minimum Income", installment * 2);
+            System.out.printf("%14s IDR%,f", "Minimum Income", installment * 2);
         } else if (s.equals("2")) {
             downPaymentPercentage += 20;
             System.out.print("How many Credit Facilities do you have");
@@ -347,10 +355,11 @@ final static Scanner input = new Scanner(System.in);
                     i = false;
                 }
             } while (i);
-            installment = (price * (downPaymentPercentage/100) / 12) / (1 - 1 / (1 + (downPaymentPercentage/100) / 12) ^ (tenor * 12));
-            System.out.printf("%14s IDR%,d", "Installment", installment);
+            //installment = (price * (interest/100) / 12) / (1 - 1 / (1 + (interest/100) / 12) ^ (tenor * 12));
+            installment = (price * (interest/100) / 12) / powerDouble(1 - 1 / (1 + (interest/100) / 12), tenor * 12);
+            System.out.printf("%14s IDR%,f", "Installment", installment);
             System.out.printf("%14s IDR%,d", "Debt principal", (price - downPayment));
-            System.out.printf("%14s IDR%,d", "Minimum Income", installment * 2);
+            System.out.printf("%14s IDR%,f", "Minimum Income", installment * 2);
         }
     }
     static void refinancingLoanApplication() {
