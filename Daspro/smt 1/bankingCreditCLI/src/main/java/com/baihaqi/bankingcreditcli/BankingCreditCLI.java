@@ -1,8 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Project/Maven2/JavaApp/src/main/java/${packagePath}/${mainClassName}.java to edit this template
- */
-
 package com.baihaqi.bankingcreditcli;
 
 import java.util.Scanner;
@@ -15,20 +10,21 @@ import java.util.Scanner;
  */
 public class BankingCreditCLI {
     final static Scanner input = new Scanner(System.in);
+    static String[][] credential = new String[1][2];
+    static String username;
 
     public static void main(String[] args) {
-        String[][] credential = new String[1][2];
         credential[0][0] = "admin";
         credential[0][1] = "admin";
-        loginMenu(credential);
+        loginMenu();
     }
 
     // region login
-    static String usernameCheck(String[][] cred) {
+    static String usernameCheck() {
         while (true) {
             System.out.print("Username: ");
             String userInput = input.next();
-            for (String[] strings : cred) {
+            for (String[] strings : credential) {
                 if (strings[0] == null)
                     continue;
                 if (strings[0].equals(userInput))
@@ -41,12 +37,12 @@ public class BankingCreditCLI {
         }
     }
 
-    static boolean passwordCheck(String[][] cred, String username) {
+    static boolean passwordCheck() {
         int limit = 0;
         while (limit < 3) {
             System.out.print("Password: ");
             String userInput = input.next();
-            for (String[] strings : cred) {
+            for (String[] strings : credential) {
                 if (strings[0].equals(username)) {
                     if (strings[1].equals(userInput)) {
                         return true;
@@ -64,15 +60,15 @@ public class BankingCreditCLI {
         return false;
     }
 
-    static boolean attemptLogin(String[][] cred) {
-        String username = usernameCheck(cred);
+    static boolean attemptLogin() {
+        username = usernameCheck();
         if (!username.equalsIgnoreCase("register")) {
-            boolean password = passwordCheck(cred, username);
+            boolean password = passwordCheck();
             if (password) {
-                mainMenu(cred, username);
+                mainMenu();
             } else {
-                if (attemptLogin(cred)) {
-                    registerMenu(cred);
+                if (attemptLogin()) {
+                    registerMenu();
                 }
             }
             return false;
@@ -113,16 +109,76 @@ public class BankingCreditCLI {
         }
     }
 
+    static void mortgageApplicationDetail(int debt, int tenor, int downPaymentPercentage, int downPayment, int creditFacilities, double interest, double installment) {
+        String prompt = "Mortgage Application";
+        String ordinal;
+        switch (String.valueOf(creditFacilities).charAt(String.valueOf(creditFacilities).length()-1)) {
+            case '1' -> ordinal = "st";
+            case '2' -> ordinal = "nd";
+            case '3' -> ordinal = "rd";
+            default -> ordinal = "th";
+        }
+
+        String[] varValue = {
+                String.format("%d%s", creditFacilities, ordinal),
+                String.format("IDR %,d", debt),
+                String.format("IDR %,d", downPayment),
+                String.format("IDR %,d", (debt - downPayment)),
+                String.format("%d", tenor),
+                String.format("%.2f%s", interest, "%"),
+                String.format("IDR %,.2f", installment),
+                String.format("IDR %,.2f", (installment * 2))
+        };
+
+        String[] varName = {
+                "Credit facility: ",
+                "House price: ",
+                String.format("Down payment %d%s: ", downPaymentPercentage, "%"),
+                "Debt principal: ",
+                "Tenor: ",
+                "Interest: ",
+                "installment: ",
+                "Minimum income: "
+        };
+        int heading;
+        String barTop = "", side = "||", barBot = "";
+        heading = 64;
+        for (int i = 0; i < heading; i++) {
+            barTop += "=";
+        }
+        barBot += side;
+        for (int i = 0; i < heading - (2 * side.length()); i++) {
+            barBot += "=";
+        }
+        barBot += side;
+        System.out.println(barTop);
+        int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
+        System.out.printf("%s%" + headingSpacing + "s%s%" + headingSpacing
+                + "s%s\n", side, " ", prompt, " ", side);
+        System.out.println(barBot);
+
+        String contentSpacing = String.format("%s%"+ (heading - (2 * side.length())) +"s%s\n", side, " ", side);
+        System.out.print(contentSpacing);
+
+        for (int i = 0; i < varName.length; i++) {
+            int paddingLeft = ((heading / 2) - side.length() - varName[i].length());
+            int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
+            System.out.printf("%s%" + paddingLeft + "s%s%s%" + paddingRight + "s%s\n", side, " ", varName[i], varValue[i], " ", side);
+            System.out.print(contentSpacing);
+        }
+        System.out.println(barBot);
+    }
+
     // endregion
     // region etc
-    static String[][] newCred(String[][] old) {
-        String[][] credential = new String[old.length + 1][old[0].length];
-        for (int row = 0; row < old.length; row++) {
-            for (int col = 0; col < old[row].length; col++) {
-                credential[row][col] = old[row][col];
+    static void newCred() {
+        String[][] credentialOld = credential;
+        credential = new String[credentialOld.length + 1][credentialOld[0].length];
+        for (int row = 0; row < credentialOld.length; row++) {
+            for (int col = 0; col < credentialOld[row].length; col++) {
+                credential[row][col] = credentialOld[row][col];
             }
         }
-        return credential;
     }
 
     static String menuInput() {
@@ -155,27 +211,39 @@ public class BankingCreditCLI {
                                                              \s""");
     }
 
+    static boolean confirm() {
+        while (true){
+            System.out.print("Are you sure (y/n): ");
+            String userInput = input.next();
+            if (userInput.equalsIgnoreCase("y")) {
+                return true;
+            } else if (userInput.equalsIgnoreCase("n")) {
+                return false;
+            }
+            System.out.println("Please enter a valid input!");
+        }
+    }
     // endregion
     // region menu
-    static void loginMenu(String[][] cred) {
+    static void loginMenu() {
         printHeading("LOGIN");
         printPromptSplit("If you don't already have an account please type \"register\" in the username input");
-        if (attemptLogin(cred)) {
-            registerMenu(cred);
+        if (attemptLogin()) {
+            registerMenu();
         }
     }
 
-    static void registerMenu(String[][] cred) {
+    static void registerMenu() {
         printHeading("REGISTER");
-        String[][] credential = newCred(cred);
+        newCred();
         System.out.print("Enter your username: ");
         credential[credential.length - 1][0] = input.next();
         System.out.print("Enter your password: ");
         credential[credential.length - 1][1] = input.next();
-        loginMenu(credential);
+        loginMenu();
     }
 
-    static void mainMenu(String[][] cred, String user) {
+    static void mainMenu() {
         printHeading("MENU");
         System.out.println("""
                 1. Credit card menu
@@ -183,29 +251,29 @@ public class BankingCreditCLI {
                 3. Account information
                 4. Log out""");
         switch (menuInput()) {
-            case "1" -> creditCardMenu(cred, user);
-            case "2" -> loanMenu(cred, user);
-            case "3" -> accountInfoMenu(cred, user);
-            case "4" -> loginMenu(cred);
+            case "1" -> creditCardMenu();
+            case "2" -> loanMenu();
+            case "3" -> accountInfoMenu();
+            case "4" -> loginMenu();
         }
     }
 
     // region mainMenu
-    static void creditCardMenu(String[][] cred, String user) {
+    static void creditCardMenu() {
         printHeading("CREDIT CARD");
         System.out.println("""
                 1. Apply for a credit card
                 2. Owned Credit card
                 3. Back to main menu""");
         switch (menuInput()) {
-            case "1" -> newCreditCard(cred, user);
-            case "2" -> ownedCreditCard(cred, user);
-            case "3" -> mainMenu(cred, user);
+            case "1" -> newCreditCard();
+            case "2" -> ownedCreditCard();
+            case "3" -> mainMenu();
         }
     }
 
     // region creditCardMenu
-    static void newCreditCard(String[][] cred, String user) {
+    static void newCreditCard() {
         printHeading("APPLY FOR A CREDIT CARD");
         System.out.println("""
                 1. General purpose
@@ -214,62 +282,62 @@ public class BankingCreditCLI {
                 4. Priority
                 5. Back to credit card menu""");
         switch (menuInput()) {
-            case "1" -> generalPurposeCreditCardApplication(cred, user);
-            case "2" -> travelCreditCardApplication(cred, user);
-            case "3" -> lifestyleCreditCardApplication(cred, user);
-            case "4" -> priorityCreditCardApplication(cred, user);
-            case "5" -> creditCardMenu(cred, user);
+            case "1" -> generalPurposeCreditCardApplication();
+            case "2" -> travelCreditCardApplication();
+            case "3" -> lifestyleCreditCardApplication();
+            case "4" -> priorityCreditCardApplication();
+            case "5" -> creditCardMenu();
         }
     }
 
     // region newCreditCard
-    static void generalPurposeCreditCardApplication(String[][] cred, String user) {
+    static void generalPurposeCreditCardApplication() {
         printHeading("GENERAL PURPOSE CREDIT CARD APPLICATION");
         notFound();
-        newCreditCard(cred, user);
+        newCreditCard();
     }
 
-    static void travelCreditCardApplication(String[][] cred, String user) {
+    static void travelCreditCardApplication() {
         printHeading("TRAVEL CREDIT CARD APPLICATION");
         notFound();
-        newCreditCard(cred, user);
+        newCreditCard();
     }
 
-    static void lifestyleCreditCardApplication(String[][] cred, String user) {
+    static void lifestyleCreditCardApplication() {
         printHeading("LIFESTYLE CREDIT CARD APPLICATION");
         notFound();
-        newCreditCard(cred, user);
+        newCreditCard();
     }
 
-    static void priorityCreditCardApplication(String[][] cred, String user) {
+    static void priorityCreditCardApplication() {
         printHeading("PRIORITY CREDIT CARD APPLICATION");
         notFound();
-        newCreditCard(cred, user);
+        newCreditCard();
     }
 
     // endregion
-    static void ownedCreditCard(String[][] cred, String user) {
+    static void ownedCreditCard() {
         printHeading("OWNED CREDIT CARD");
         notFound();
-        creditCardMenu(cred, user);
+        creditCardMenu();
     }
 
     // endregion
-    static void loanMenu(String[][] cred, String user) {
+    static void loanMenu() {
         printHeading("LOAN");
         System.out.println("""
                 1. Apply for a loan
                 2. Current loan status
                 3. Back to main menu""");
         switch (menuInput()) {
-            case "1" -> newLoanMenu(cred, user);
-            case "2" -> accountLoanInfo(cred, user);
-            case "3" -> mainMenu(cred, user);
+            case "1" -> newLoanMenu();
+            case "2" -> accountLoanInfo();
+            case "3" -> mainMenu();
         }
     }
 
     // region loanMenu
-    static void newLoanMenu(String[][] cred, String user) {
+    static void newLoanMenu() {
         printHeading("APPLY FOR A LOAN");
         System.out.println("""
                 1. Personal
@@ -278,25 +346,25 @@ public class BankingCreditCLI {
                 4. Refinancing
                 5. Back to loan menu""");
         switch (menuInput()) {
-            case "1" -> personalLoanApplication(cred, user);
-            case "2" -> autoLoanApplication(cred, user);
+            case "1" -> personalLoanApplication();
+            case "2" -> autoLoanApplication();
             case "3" -> mortgageLoanApplication();
-            case "4" -> refinancingLoanApplication(cred, user);
-            case "5" -> loanMenu(cred, user);
+            case "4" -> refinancingLoanApplication();
+            case "5" -> loanMenu();
         }
     }
 
     // region newLoanMenu
-    static void personalLoanApplication(String[][] cred, String user) {
+    static void personalLoanApplication() {
         printHeading("PERSONAL LOAN");
         notFound();
-        newLoanMenu(cred, user);
+        newLoanMenu();
     }
 
-    static void autoLoanApplication(String[][] cred, String user) {
+    static void autoLoanApplication() {
         printHeading("AUTO LOAN");
         notFound();
-        newLoanMenu(cred, user);
+        newLoanMenu();
     }
 
     static void mortgageLoanApplication() {
@@ -350,7 +418,7 @@ public class BankingCreditCLI {
         do {
             System.out.print("Down payment: ");
             downPayment = input.nextInt();
-            if (downPayment < debt * downPaymentPercentage / 100) {
+            if (downPayment < (debt / 100) * downPaymentPercentage) {
                 System.out.println("Please enter a value bigger than the minimum!");
             } else {
                 i = false;
@@ -376,26 +444,28 @@ public class BankingCreditCLI {
         System.out.printf("%14s IDR %,d\n", "Installment", (long) installment);
         System.out.printf("%14s IDR %,d\n", "Debt principal", (debt - downPayment));
         System.out.printf("%14s IDR %,d\n", "Minimum Income", (long) installment * 2);
+
+        mortgageApplicationDetail(debt, tenor, downPaymentPercentage, downPayment, creditFacilities, interest, installment);
     }
 
-    static void refinancingLoanApplication(String[][] cred, String user) {
+    static void refinancingLoanApplication() {
         printHeading("REFINANCING LOAN");
         notFound();
-        newLoanMenu(cred, user);
+        newLoanMenu();
     }
 
     // endregion
-    static void accountLoanInfo(String[][] cred, String user) {
+    static void accountLoanInfo() {
         printHeading("LOAN STATUS");
         notFound();
-        loanMenu(cred, user);
+        loanMenu();
     }
 
     // endregion
-    static void accountInfoMenu(String[][] cred, String user) {
+    static void accountInfoMenu() {
         printHeading("ACCOUNT INFO");
         notFound();
-        mainMenu(cred, user);
+        mainMenu();
 
     }
     // endregion
