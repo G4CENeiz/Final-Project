@@ -109,7 +109,7 @@ public class BankingCreditCLI {
         }
     }
 
-    static void mortgageApplicationDetail(int debt, int tenor, int downPaymentPercentage, int downPayment, int creditFacilities, double interest, double installment) {
+    static void mortgageApplicationDetail(int debt, int tenor, int downPayment, int creditFacilities, double interest, double installment) {
         String prompt = "Mortgage Application";
         String ordinal;
         switch (String.valueOf(creditFacilities).charAt(String.valueOf(creditFacilities).length()-1)) {
@@ -118,27 +118,28 @@ public class BankingCreditCLI {
             case '3' -> ordinal = "rd";
             default -> ordinal = "th";
         }
+        double downPaymentPercentageByDebt = ((double)downPayment / debt) * 100;
 
         String[] varValue = {
-                String.format("%d%s", creditFacilities, ordinal),
-                String.format("IDR %,d", debt),
-                String.format("IDR %,d", downPayment),
-                String.format("IDR %,d", (debt - downPayment)),
-                String.format("%d", tenor),
-                String.format("%.2f%s", interest, "%"),
-                String.format("IDR %,.2f", installment),
-                String.format("IDR %,.2f", (installment * 2))
+                String.format(": %d%s", creditFacilities, ordinal),
+                String.format(": IDR %,d", debt),
+                String.format(": IDR %,d", downPayment),
+                String.format(": IDR %,d", (debt - downPayment)),
+                String.format(": %d", tenor),
+                String.format(": %.2f%s", interest, "%"),
+                String.format(": IDR %,.2f", installment),
+                String.format(": IDR %,.2f", (installment * 2))
         };
 
         String[] varName = {
-                "Credit facility: ",
-                "House price: ",
-                String.format("Down payment %d%s: ", downPaymentPercentage, "%"),
-                "Debt principal: ",
-                "Tenor: ",
-                "Interest: ",
-                "installment: ",
-                "Minimum income: "
+                "Credit facility",
+                "House price",
+                String.format("Down payment %.1f%s", downPaymentPercentageByDebt, "%"),
+                "Debt principal",
+                "Tenor",
+                "Interest",
+                "installment",
+                "Minimum income"
         };
         int heading;
         String barTop = "", side = "||", barBot = "";
@@ -160,10 +161,17 @@ public class BankingCreditCLI {
         String contentSpacing = String.format("%s%"+ (heading - (2 * side.length())) +"s%s\n", side, " ", side);
         System.out.print(contentSpacing);
 
+        int fit = 0;
+        for (String s : varName) {
+            if (fit < s.length()) {
+                fit = s.length();
+            }
+        }
+
         for (int i = 0; i < varName.length; i++) {
-            int paddingLeft = ((heading / 2) - side.length() - varName[i].length());
+            int paddingLeft = ((heading / 2) - side.length() - fit);
             int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
-            System.out.printf("%s%" + paddingLeft + "s%s%s%" + paddingRight + "s%s\n", side, " ", varName[i], varValue[i], " ", side);
+            System.out.printf("%s%" + paddingLeft + "s%-"+ fit +"s%s%" + paddingRight + "s%s\n", side, " ", varName[i], varValue[i], " ", side);
             System.out.print(contentSpacing);
         }
         System.out.println(barBot);
@@ -445,7 +453,7 @@ public class BankingCreditCLI {
         System.out.printf("%14s IDR %,d\n", "Debt principal", (debt - downPayment));
         System.out.printf("%14s IDR %,d\n", "Minimum Income", (long) installment * 2);
 
-        mortgageApplicationDetail(debt, tenor, downPaymentPercentage, downPayment, creditFacilities, interest, installment);
+        mortgageApplicationDetail(debt, tenor, downPayment, creditFacilities, interest, installment);
     }
 
     static void refinancingLoanApplication() {
