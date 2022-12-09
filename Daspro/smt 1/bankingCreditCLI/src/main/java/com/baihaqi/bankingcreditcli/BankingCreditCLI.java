@@ -12,6 +12,8 @@ public class BankingCreditCLI {
     final static Scanner input = new Scanner(System.in);
     static String[][] credential = new String[1][2];
     static String username;
+    static double[][] creditMortgage = new double[1][4];
+    static String[] creditMortgageDetail = new String[1];
 
     public static void main(String[] args) {
         credential[0][0] = "admin";
@@ -89,9 +91,9 @@ public class BankingCreditCLI {
         for (int i = 0; i < heading; i++) {
             bar += "=";
         }
+        int gap = ((heading - (side.length() * 2) - prompt.length()) / 2);
         System.out.println(bar);
-        System.out.printf("%s%" + ((heading - 4 - prompt.length()) / 2) + "s%s%" + ((heading - 4 - prompt.length()) / 2)
-                + "s%s\n", side, " ", prompt, " ", side);
+        System.out.printf("%s%" + gap + "s%s%" + gap + "s%s\n", side, " ", prompt, " ", side);
         System.out.println(bar);
     }
 
@@ -110,6 +112,7 @@ public class BankingCreditCLI {
     }
 
     static void mortgageApplicationDetail(int debt, int tenor, int downPayment, int creditFacilities, double interest, double installment) {
+        int id = getUserID();
         String prompt = "Mortgage Application";
         String ordinal;
         switch (String.valueOf(creditFacilities).charAt(String.valueOf(creditFacilities).length()-1)) {
@@ -152,14 +155,13 @@ public class BankingCreditCLI {
             barBot += "=";
         }
         barBot += side;
-        System.out.println(barTop);
+        insertMortgageDetail(barTop);
         int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
-        System.out.printf("%s%" + headingSpacing + "s%s%" + headingSpacing
-                + "s%s\n", side, " ", prompt, " ", side);
-        System.out.println(barBot);
+        insertMortgageDetail(String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side));
+        insertMortgageDetail(barBot);
 
-        String contentSpacing = String.format("%s%"+ (heading - (2 * side.length())) +"s%s\n", side, " ", side);
-        System.out.print(contentSpacing);
+        String contentSpacing = String.format("%s%"+ (heading - (2 * side.length())) +"s%s", side, " ", side);
+        insertMortgageDetail(contentSpacing);
 
         int fit = 0;
         for (String s : varName) {
@@ -171,26 +173,52 @@ public class BankingCreditCLI {
         for (int i = 0; i < varName.length; i++) {
             int paddingLeft = ((heading / 2) - side.length() - fit);
             int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
-            System.out.printf("%s%" + paddingLeft + "s%-"+ fit +"s%s%" + paddingRight + "s%s\n", side, " ", varName[i], varValue[i], " ", side);
-            System.out.print(contentSpacing);
+            insertMortgageDetail(String.format("%s%" + paddingLeft + "s%-"+ fit +"s%s%" + paddingRight + "s%s", side, " ", varName[i], varValue[i], " ", side));
+            insertMortgageDetail(contentSpacing);
         }
-        System.out.println(barBot);
+        insertMortgageDetail(barBot);
+
+        if (confirm()) {
+            creditMortgage[id][0] = debt;
+            creditMortgage[id][1] = tenor;
+            creditMortgage[id][2] = downPayment;
+            creditMortgage[id][3] = installment;
+        }
+        newLoanMenu();
     }
 
     // endregion
     // region etc
-    static void newCred() {
-        String[][] credentialOld = credential;
-        credential = new String[credentialOld.length + 1][credentialOld[0].length];
-        for (int row = 0; row < credentialOld.length; row++) {
-            for (int col = 0; col < credentialOld[row].length; col++) {
-                credential[row][col] = credentialOld[row][col];
+    static void newStringArray(String[][] data) {
+        String[][] old = data;
+        data = new String[old.length + 1][old[0].length];
+        for (int row = 0; row < old.length; row++) {
+            for (int col = 0; col < old[row].length; col++) {
+                data[row][col] = old[row][col];
             }
         }
     }
 
-    static String menuInput() {
-        System.out.print("menu: ");
+    static void newString(String[] data) {
+        String[] old = data;
+        data = new String[data.length + 1];
+        for (int i = 0; i < old.length; i++) {
+            data[i] = old[i];
+        }
+    }
+
+    static void newDoubleArray(double[][] data) {
+        double[][] old = data;
+        data = new double[data.length+1][data[0].length];
+        for (int row = 0; row < data.length; row++) {
+            for (int col = 0; col < data[row].length; col++) {
+                data[row][col] = old[row][col];
+            }
+        }
+    }
+
+    static String promptedTextInput(String prompt) {
+        System.out.print(prompt);
         return input.next();
     }
 
@@ -231,6 +259,21 @@ public class BankingCreditCLI {
             System.out.println("Please enter a valid input!");
         }
     }
+
+    static int getUserID() {
+        int i = 0;
+        if (!credential[i][0].equals(username)) {
+            do {
+                i++;
+            } while (!credential[i][0].equals(username));
+        }
+        return i;
+    }
+
+    static void insertMortgageDetail(String s) {
+        System.out.print(s + "\n");
+        creditMortgageDetail[getUserID()] += s + "\n";
+    }
     // endregion
     // region menu
     static void loginMenu() {
@@ -243,11 +286,12 @@ public class BankingCreditCLI {
 
     static void registerMenu() {
         printHeading("REGISTER");
-        newCred();
-        System.out.print("Enter your username: ");
-        credential[credential.length - 1][0] = input.next();
-        System.out.print("Enter your password: ");
-        credential[credential.length - 1][1] = input.next();
+        newStringArray(credential);
+        newDoubleArray(creditMortgage);
+        newString(creditMortgageDetail);
+        creditMortgageDetail[creditMortgageDetail.length - 1] = "";
+        credential[credential.length - 1][0] = promptedTextInput("Enter your username: ");
+        credential[credential.length - 1][1] = promptedTextInput("Enter your password: ");
         loginMenu();
     }
 
@@ -258,7 +302,7 @@ public class BankingCreditCLI {
                 2. Loan menu
                 3. Account information
                 4. Log out""");
-        switch (menuInput()) {
+        switch (promptedTextInput("menu: ")) {
             case "1" -> creditCardMenu();
             case "2" -> loanMenu();
             case "3" -> accountInfoMenu();
@@ -273,7 +317,7 @@ public class BankingCreditCLI {
                 1. Apply for a credit card
                 2. Owned Credit card
                 3. Back to main menu""");
-        switch (menuInput()) {
+        switch (promptedTextInput("menu: ")) {
             case "1" -> newCreditCard();
             case "2" -> ownedCreditCard();
             case "3" -> mainMenu();
@@ -289,7 +333,7 @@ public class BankingCreditCLI {
                 3. Lifestyle
                 4. Priority
                 5. Back to credit card menu""");
-        switch (menuInput()) {
+        switch (promptedTextInput("menu: ")) {
             case "1" -> generalPurposeCreditCardApplication();
             case "2" -> travelCreditCardApplication();
             case "3" -> lifestyleCreditCardApplication();
@@ -337,7 +381,7 @@ public class BankingCreditCLI {
                 1. Apply for a loan
                 2. Current loan status
                 3. Back to main menu""");
-        switch (menuInput()) {
+        switch (promptedTextInput("menu: ")) {
             case "1" -> newLoanMenu();
             case "2" -> accountLoanInfo();
             case "3" -> mainMenu();
@@ -353,7 +397,7 @@ public class BankingCreditCLI {
                 3. Mortgage
                 4. Refinancing
                 5. Back to loan menu""");
-        switch (menuInput()) {
+        switch (promptedTextInput("menu: ")) {
             case "1" -> personalLoanApplication();
             case "2" -> autoLoanApplication();
             case "3" -> mortgageLoanApplication();
@@ -389,14 +433,14 @@ public class BankingCreditCLI {
                 Purpose of Credit
                 1. Buying a house
                 2. Renovating""");
-        String s = menuInput();
+        String s = promptedTextInput("menu: ");
         if (s.equals("1")) {
             System.out.println("""
                     Collateral Type
                     1. House
                     2. Apartment
                     3. Shop""");
-            String collateralType = menuInput();
+            String collateralType = promptedTextInput("menu: ");
             if (collateralType.equals("1") || collateralType.equals("2")) {
                 System.out.print("Building Area (m2): ");
                 buildingArea = input.nextInt();
@@ -465,8 +509,16 @@ public class BankingCreditCLI {
     // endregion
     static void accountLoanInfo() {
         printHeading("LOAN STATUS");
-        notFound();
-        loanMenu();
+        if (creditMortgage[getUserID()][0] == 0) {
+            notFound();
+        } else {
+            System.out.print(creditMortgageDetail[getUserID()]);
+        }
+        System.out.print("Exit?");
+        if (confirm()){
+            loanMenu();
+        }
+        accountLoanInfo();
     }
 
     // endregion
