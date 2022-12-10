@@ -35,6 +35,8 @@ public class BankingCreditCLI {
                     return userInput;
                 if (userInput.equalsIgnoreCase("register"))
                     return userInput;
+                if (userInput.equalsIgnoreCase("quit"))
+                    return userInput;
             }
             printPromptSplit(
                     "The username you've entered doesn't exist in our system please re-enter your username correctly");
@@ -66,13 +68,16 @@ public class BankingCreditCLI {
 
     static boolean attemptLogin() {
         username = usernameCheck();
-        if (!username.equalsIgnoreCase("register")) {
+        if (!(username.equalsIgnoreCase("register") || username.equalsIgnoreCase("quit"))) {
             boolean password = passwordCheck();
             if (password) {
                 mainMenu();
             } else {
                 if (attemptLogin()) {
-                    registerMenu();
+                    if (username.equalsIgnoreCase("register"))
+                        registerMenu();
+                    if (username.equalsIgnoreCase("quit"))
+                        quitMenu();
                 }
             }
             return false;
@@ -352,9 +357,12 @@ public class BankingCreditCLI {
     // region menu
     static void loginMenu() {
         printHeading("LOGIN");
-        printPromptSplit("If you don't already have an account please type \"register\" in the username input");
+        printPromptSplit("If you don't already have an account please type \"register\" in the username input, if you want to quit type \"quit\" in the username input");
         if (attemptLogin()) {
-            registerMenu();
+            if (username.equalsIgnoreCase("register"))
+                registerMenu();
+            if (username.equalsIgnoreCase("quit"))
+                quitMenu();
         }
     }
 
@@ -650,7 +658,7 @@ public class BankingCreditCLI {
     }
 
     static void quitMenu() {
-        // lol it's just a blank function so that it quit the program
+        printHeading("QUIT SUCCESSFULLY");
     }
     // endregion
     // endregion
