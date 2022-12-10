@@ -15,6 +15,8 @@ public class BankingCreditCLI {
     static double[][] creditMortgage = new double[1][4];
     static String[] creditMortgageDetail = new String[1];
 
+    static String[][] profile = new String[1][4];
+
     public static void main(String[] args) {
         credential[0][0] = "admin";
         credential[0][1] = "admin";
@@ -24,7 +26,7 @@ public class BankingCreditCLI {
     // region login
     static String usernameCheck() {
         while (true) {
-            System.out.print("Username: ");
+            write("Username: ");
             String userInput = input.next();
             for (String[] strings : credential) {
                 if (strings[0] == null)
@@ -42,7 +44,7 @@ public class BankingCreditCLI {
     static boolean passwordCheck() {
         int limit = 0;
         while (limit < 3) {
-            System.out.print("Password: ");
+            write("Password: ");
             String userInput = input.next();
             for (String[] strings : credential) {
                 if (strings[0].equals(username)) {
@@ -52,9 +54,9 @@ public class BankingCreditCLI {
                 }
             }
             if (limit < 1)
-                System.out.println("Wrong password");
+                writeln("Wrong password");
             if (limit == 1)
-                System.out.println("""
+                writeln("""
                         Wrong password, Last attempt
                         if you fail again, you would need to re-enter your username""");
             limit++;
@@ -92,9 +94,9 @@ public class BankingCreditCLI {
             bar += "=";
         }
         int gap = ((heading - (side.length() * 2) - prompt.length()) / 2);
-        System.out.println(bar);
-        System.out.printf("%s%" + gap + "s%s%" + gap + "s%s\n", side, " ", prompt, " ", side);
-        System.out.println(bar);
+        writeln(bar);
+        write(String.format("%s%" + gap + "s%s%" + gap + "s%s\n", side, " ", prompt, " ", side));
+        writeln(bar);
     }
 
     static void printPromptSplit(String prompt) {
@@ -103,46 +105,47 @@ public class BankingCreditCLI {
         while (i < promptSplit.length) {
             int limit = 0;
             while (limit < 65 && i < promptSplit.length && (limit + promptSplit[i].length()) < 65) {
-                System.out.printf("%s ", promptSplit[i]);
+                write(String.format("%s ", promptSplit[i]));
                 limit = limit + (promptSplit[i].length() + 1);
                 i++;
             }
-            System.out.println();
+            writeln("");
         }
     }
 
-    static void mortgageApplicationDetail(int debt, int tenor, int downPayment, int creditFacilities, double interest, double installment) {
+    static void mortgageApplicationDetail(double... detail) {
         int id = getUserID();
         String prompt = "Mortgage Application";
         String ordinal;
-        switch (String.valueOf(creditFacilities).charAt(String.valueOf(creditFacilities).length()-1)) {
+        switch (String.valueOf(detail[3]).charAt(String.valueOf(detail[3]).length() - 1)) {
             case '1' -> ordinal = "st";
             case '2' -> ordinal = "nd";
             case '3' -> ordinal = "rd";
             default -> ordinal = "th";
         }
-        double downPaymentPercentageByDebt = ((double)downPayment / debt) * 100;
 
         String[] varValue = {
-                String.format(": %d%s", creditFacilities, ordinal),
-                String.format(": IDR %,d", debt),
-                String.format(": IDR %,d", downPayment),
-                String.format(": IDR %,d", (debt - downPayment)),
-                String.format(": %d", tenor),
-                String.format(": %.2f%s", interest, "%"),
-                String.format(": IDR %,.2f", installment),
-                String.format(": IDR %,.2f", (installment * 2))
+                String.format(": %.0f%s", detail[3], ordinal),
+                String.format(": IDR %,.0f", detail[0]),
+                String.format(": IDR %,.0f", detail[2]),
+                String.format(": IDR %,.0f", (detail[0] - detail[2])),
+                String.format(": %.0f", detail[1]),
+                String.format(": %.2f%s", detail[4], "%"),
+                String.format(": IDR %,.2f", detail[5]),
+                String.format(": IDR %,.2f", (detail[5] * 2))
         };
 
+        double downPaymentPercentageByDebt = (detail[2] / detail[0]) * 100;
+
         String[] varName = {
-                "Credit facility",
-                "House price",
-                String.format("Down payment %.1f%s", downPaymentPercentageByDebt, "%"),
-                "Debt principal",
-                "Tenor",
-                "Interest",
-                "installment",
-                "Minimum income"
+                "Credit facility ",
+                "House price ",
+                String.format("Down payment %.2f%s ", downPaymentPercentageByDebt, "%"),
+                "Debt principal ",
+                "Tenor ",
+                "Interest ",
+                "installment ",
+                "Minimum income "
         };
         int heading;
         String barTop = "", side = "||", barBot = "";
@@ -157,10 +160,11 @@ public class BankingCreditCLI {
         barBot += side;
         insertMortgageDetail(barTop);
         int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
-        insertMortgageDetail(String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side));
+        insertMortgageDetail(
+                String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side));
         insertMortgageDetail(barBot);
 
-        String contentSpacing = String.format("%s%"+ (heading - (2 * side.length())) +"s%s", side, " ", side);
+        String contentSpacing = String.format("%s%" + (heading - (2 * side.length())) + "s%s", side, " ", side);
         insertMortgageDetail(contentSpacing);
 
         int fit = 0;
@@ -173,18 +177,27 @@ public class BankingCreditCLI {
         for (int i = 0; i < varName.length; i++) {
             int paddingLeft = ((heading / 2) - side.length() - fit);
             int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
-            insertMortgageDetail(String.format("%s%" + paddingLeft + "s%-"+ fit +"s%s%" + paddingRight + "s%s", side, " ", varName[i], varValue[i], " ", side));
+            insertMortgageDetail(String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
+                    " ", varName[i], varValue[i], " ", side));
             insertMortgageDetail(contentSpacing);
         }
         insertMortgageDetail(barBot);
 
         if (confirm()) {
-            creditMortgage[id][0] = debt;
-            creditMortgage[id][1] = tenor;
-            creditMortgage[id][2] = downPayment;
-            creditMortgage[id][3] = installment;
+            creditMortgage[id][0] = detail[0];
+            creditMortgage[id][1] = detail[1];
+            creditMortgage[id][2] = detail[2];
+            creditMortgage[id][3] = detail[5];
         }
         newLoanMenu();
+    }
+
+    static void write(String x) {
+        System.out.print(x);
+    }
+
+    static void writeln(String x) {
+        System.out.println(x);
     }
 
     // endregion
@@ -209,7 +222,7 @@ public class BankingCreditCLI {
 
     static void newDoubleArray(double[][] data) {
         double[][] old = data;
-        data = new double[data.length+1][data[0].length];
+        data = new double[data.length + 1][data[0].length];
         for (int row = 0; row < data.length; row++) {
             for (int col = 0; col < data[row].length; col++) {
                 data[row][col] = old[row][col];
@@ -218,7 +231,7 @@ public class BankingCreditCLI {
     }
 
     static String promptedTextInput(String prompt) {
-        System.out.print(prompt);
+        write(prompt);
         return input.next();
     }
 
@@ -231,7 +244,7 @@ public class BankingCreditCLI {
     }
 
     static void notFound() {
-        System.out.println("""
+        writeln("""
                  _  _    ___  _  _  \s
                 | || |  / _ \\| || | \s
                 | || |_| | | | || |_\s
@@ -248,15 +261,15 @@ public class BankingCreditCLI {
     }
 
     static boolean confirm() {
-        while (true){
-            System.out.print("Are you sure (y/n): ");
+        while (true) {
+            write("Are you sure (y/n): ");
             String userInput = input.next();
             if (userInput.equalsIgnoreCase("y")) {
                 return true;
             } else if (userInput.equalsIgnoreCase("n")) {
                 return false;
             }
-            System.out.println("Please enter a valid input!");
+            writeln("Please enter a valid input!");
         }
     }
 
@@ -271,9 +284,70 @@ public class BankingCreditCLI {
     }
 
     static void insertMortgageDetail(String s) {
-        System.out.print(s + "\n");
+        write(s + "\n");
         creditMortgageDetail[getUserID()] += s + "\n";
     }
+
+    static boolean isValidPhoneNumber(String phoneNumber) {
+        char[] chars = phoneNumber.toCharArray();
+        if (chars[0] == '+') {
+            char[] old = chars;
+            chars = new char[old.length - 1];
+            for (int i = 1; i < old.length; i++) {
+                chars[i - 1] = old[i];
+            }
+        }
+        if (chars[0] == '0') {
+            char[] old = chars;
+            chars = new char[old.length - 1];
+            for (int i = 1; i < old.length; i++) {
+                chars[i - 1] = old[i];
+            }
+        } else if (chars[0] == '6' && chars[1] == '2') {
+            char[] old = chars;
+            chars = new char[old.length - 2];
+            for (int i = 2; i < old.length; i++) {
+                chars[i - 1] = old[i];
+            }
+        }
+        return phoneNumber.matches("[0-9+]") && chars.length >= 10 && chars.length <= 12 && chars[0] == '8';
+    }
+
+    static boolean isValidDate(String date) {
+        String[] dateSplit = date.split("@", 6);
+        if (dateSplit[3].length() != 2 || dateSplit[4].length() != 2 || dateSplit[5].length() != 2)
+            return false;
+        String dd, mm, yy;
+        dd = Integer.parseInt(dateSplit[3]) < 40 ? Integer.toString(Integer.parseInt(dateSplit[3]))
+                : Integer.toString(Integer.parseInt(dateSplit[3]) - 40);
+        mm = dateSplit[4];
+        yy = dateSplit[5];
+        boolean leap = false;
+        if ((Integer.parseInt(yy)) % 4 == 0) {
+            if ((Integer.parseInt(yy)) % 100 == 0) {
+                if ((Integer.parseInt(yy)) % 400 == 0) {
+                    leap = true;
+                }
+            } else {
+                leap = true;
+            }
+        }
+        if (mm.equals("1") || mm.equals("3") || mm.equals("5") || mm.equals("7") || mm.equals("8") || mm.equals("10")
+                || mm.equals("12")) {
+            return Integer.parseInt(dd) <= 31 && Integer.parseInt(dd) >= 1;
+        } else if (mm.equals("4") || mm.equals("6") || mm.equals("9") || mm.equals("11")) {
+            return Integer.parseInt(dd) <= 30 && Integer.parseInt(dd) >= 1;
+        } else if (leap) {
+            return Integer.parseInt(dd) <= 29 && Integer.parseInt(dd) >= 1;
+        } else {
+            return Integer.parseInt(dd) <= 28 && Integer.parseInt(dd) >= 1;
+        }
+    }
+
+    static boolean isValidKemendagriCode(String code) {
+        return true;
+    }
+
     // endregion
     // region menu
     static void loginMenu() {
@@ -287,33 +361,79 @@ public class BankingCreditCLI {
     static void registerMenu() {
         printHeading("REGISTER");
         newStringArray(credential);
+        // newStringArray(profile);
         newDoubleArray(creditMortgage);
         newString(creditMortgageDetail);
         creditMortgageDetail[creditMortgageDetail.length - 1] = "";
         credential[credential.length - 1][0] = promptedTextInput("Enter your username: ");
         credential[credential.length - 1][1] = promptedTextInput("Enter your password: ");
+        // setProfile();
         loginMenu();
+    }
+
+    static void setProfile() {
+        int id = getUserID();
+        String userInput;
+        userInput = promptedTextInput("Enter your name: ");
+        profile[id][0] = userInput;
+        boolean i = true;
+        do {
+            userInput = promptedTextInput("Enter your phone number");
+            if (!isValidPhoneNumber(userInput)) {
+                writeln("Please enter a valid phone number");
+            } else {
+                i = false;
+            }
+        } while (i);
+        profile[id][1] = userInput;
+        writeln("Please enter your ID card number in this format");
+        writeln("(xx xx xx xx xx xx xxxx)");
+        writeln("example: 35 73 05 20 04 69 1337");
+        i = true;
+        do {
+            write("Enter your ID card number: ");
+            userInput = input.next();
+            userInput += "@";
+            userInput += input.next();
+            userInput += "@";
+            userInput += input.next();
+            userInput += "@";
+            userInput += input.next();
+            userInput += "@";
+            userInput += input.next();
+            userInput += "@";
+            userInput += input.next();
+            userInput += "@";
+            userInput += input.next();
+            if (isValidDate(userInput) && isValidKemendagriCode(userInput)) {
+                i = false;
+            } else {
+                writeln("Please enter a valid ID card number");
+            }
+        } while (i);
     }
 
     static void mainMenu() {
         printHeading("MENU");
-        System.out.println("""
+        writeln("""
                 1. Credit card menu
                 2. Loan menu
                 3. Account information
-                4. Log out""");
+                4. Log out
+                5. Quit the program""");
         switch (promptedTextInput("menu: ")) {
             case "1" -> creditCardMenu();
             case "2" -> loanMenu();
             case "3" -> accountInfoMenu();
             case "4" -> loginMenu();
+            case "5" -> quitMenu();
         }
     }
 
     // region mainMenu
     static void creditCardMenu() {
         printHeading("CREDIT CARD");
-        System.out.println("""
+        writeln("""
                 1. Apply for a credit card
                 2. Owned Credit card
                 3. Back to main menu""");
@@ -327,7 +447,7 @@ public class BankingCreditCLI {
     // region creditCardMenu
     static void newCreditCard() {
         printHeading("APPLY FOR A CREDIT CARD");
-        System.out.println("""
+        writeln("""
                 1. General purpose
                 2. Travel
                 3. Lifestyle
@@ -377,7 +497,7 @@ public class BankingCreditCLI {
     // endregion
     static void loanMenu() {
         printHeading("LOAN");
-        System.out.println("""
+        writeln("""
                 1. Apply for a loan
                 2. Current loan status
                 3. Back to main menu""");
@@ -391,7 +511,7 @@ public class BankingCreditCLI {
     // region loanMenu
     static void newLoanMenu() {
         printHeading("APPLY FOR A LOAN");
-        System.out.println("""
+        writeln("""
                 1. Personal
                 2. Auto
                 3. Mortgage
@@ -429,20 +549,20 @@ public class BankingCreditCLI {
         double installment;
         double interest = 7.25;
         printHeading("MORTGAGE LOAN");
-        System.out.println("""
+        writeln("""
                 Purpose of Credit
                 1. Buying a house
                 2. Renovating""");
         String s = promptedTextInput("menu: ");
         if (s.equals("1")) {
-            System.out.println("""
+            writeln("""
                     Collateral Type
                     1. House
                     2. Apartment
                     3. Shop""");
             String collateralType = promptedTextInput("menu: ");
             if (collateralType.equals("1") || collateralType.equals("2")) {
-                System.out.print("Building Area (m2): ");
+                write("Building Area (m2): ");
                 buildingArea = input.nextInt();
                 if (buildingArea > 70)
                     downPaymentPercentage += 5;
@@ -450,39 +570,39 @@ public class BankingCreditCLI {
         } else if (s.equals("2")) {
             downPaymentPercentage += 20;
         }
-        System.out.println("How many Credit Facilities do you have");
+        writeln("How many Credit Facilities do you have");
         boolean i = true;
         do {
-            System.out.print("Credit Facility: ");
+            write("Credit Facility: ");
             creditFacilities = input.nextInt();
             if (creditFacilities < 1) {
-                System.out.println("Please enter a positive value!");
+                writeln("Please enter a positive value!");
             } else {
                 i = false;
             }
         } while (i);
         if (creditFacilities > 2)
             downPaymentPercentage += 10;
-        System.out.print("House price: ");
+        write("House price: ");
         debt = input.nextInt();
-        System.out.printf("Minimum down payment amount: %,d\n", (debt / 100) * downPaymentPercentage);
+        write(String.format("Minimum down payment amount: %,d\n", (debt / 100) * downPaymentPercentage));
         i = true;
         do {
-            System.out.print("Down payment: ");
+            write("Down payment: ");
             downPayment = input.nextInt();
             if (downPayment < (debt / 100) * downPaymentPercentage) {
-                System.out.println("Please enter a value bigger than the minimum!");
+                writeln("Please enter a value bigger than the minimum!");
             } else {
                 i = false;
             }
         } while (i);
-        System.out.println("Maximum 20 years tenor");
+        writeln("Maximum 20 years tenor");
         i = true;
         do {
-            System.out.print("Tenor: ");
+            write("Tenor: ");
             tenor = input.nextInt();
             if (tenor < 1 || tenor > 20) {
-                System.out.println("Please enter a value between 1 to 20");
+                writeln("Please enter a value between 1 to 20");
             } else {
                 i = false;
             }
@@ -493,9 +613,9 @@ public class BankingCreditCLI {
         double inverseReturnOfPoweredInterest = 1 - (1 / powerDouble(interestPowerBase, tenorMonth));
 
         installment = debtInterest / inverseReturnOfPoweredInterest;
-        System.out.printf("%14s IDR %,d\n", "Installment", (long) installment);
-        System.out.printf("%14s IDR %,d\n", "Debt principal", (debt - downPayment));
-        System.out.printf("%14s IDR %,d\n", "Minimum Income", (long) installment * 2);
+        write(String.format("%14s IDR %,d\n", "Installment", (long) installment));
+        write(String.format("%14s IDR %,d\n", "Debt principal", (debt - downPayment)));
+        write(String.format("%14s IDR %,d\n", "Minimum Income", (long) installment * 2));
 
         mortgageApplicationDetail(debt, tenor, downPayment, creditFacilities, interest, installment);
     }
@@ -512,13 +632,14 @@ public class BankingCreditCLI {
         if (creditMortgage[getUserID()][0] == 0) {
             notFound();
         } else {
-            System.out.print(creditMortgageDetail[getUserID()]);
+            write(creditMortgageDetail[getUserID()]);
         }
-        System.out.print("Exit?");
-        if (confirm()){
+        write("Exit?");
+        if (confirm()) {
             loanMenu();
+        } else {
+            accountLoanInfo();
         }
-        accountLoanInfo();
     }
 
     // endregion
@@ -526,7 +647,10 @@ public class BankingCreditCLI {
         printHeading("ACCOUNT INFO");
         notFound();
         mainMenu();
+    }
 
+    static void quitMenu() {
+        // lol it's just a blank function so that it quit the program
     }
     // endregion
     // endregion
