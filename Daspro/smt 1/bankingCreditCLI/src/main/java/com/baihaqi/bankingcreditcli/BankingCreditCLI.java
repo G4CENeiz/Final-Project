@@ -90,18 +90,19 @@ public class BankingCreditCLI {
     // region print
     static void printHeading(String prompt) {
         int heading;
-        String bar = "", side = "||";
+        String bar;
+        String side = "||";
         if (prompt.length() % 2 == 0) {
             heading = 64;
+            bar = "================================================================";
         } else {
             heading = 65;
-        }
-        for (int i = 0; i < heading; i++) {
-            bar += "=";
+            bar = "=================================================================";
         }
         int gap = ((heading - (side.length() * 2) - prompt.length()) / 2);
+        String title = String.format("%s%" + gap + "s%s%" + gap + "s%s\n", side, " ", prompt, " ", side);
         writeln(bar);
-        write(String.format("%s%" + gap + "s%s%" + gap + "s%s\n", side, " ", prompt, " ", side));
+        write(title);
         writeln(bar);
     }
 
@@ -129,6 +130,7 @@ public class BankingCreditCLI {
             case '3' -> ordinal = "rd";
             default -> ordinal = "th";
         }
+        double downPaymentPercentageByDebt = (detail[2] / detail[0]) * 100;
 
         String[] varValue = {
                 String.format(": %.0f%s", detail[3], ordinal),
@@ -141,9 +143,8 @@ public class BankingCreditCLI {
                 String.format(": IDR %,.2f", (detail[5] * 2))
         };
 
-        double downPaymentPercentageByDebt = (detail[2] / detail[0]) * 100;
-
         String[] varName = {
+
                 "Credit facility ",
                 "House price ",
                 String.format("Down payment %.2f%s ", downPaymentPercentageByDebt, "%"),
@@ -153,38 +154,29 @@ public class BankingCreditCLI {
                 "installment ",
                 "Minimum income "
         };
-        int heading;
-        String barTop = "", side = "||", barBot = "";
-        heading = 64;
-        for (int i = 0; i < heading; i++) {
-            barTop += "=";
-        }
-        barBot += side;
-        for (int i = 0; i < heading - (2 * side.length()); i++) {
-            barBot += "=";
-        }
-        barBot += side;
-        insertMortgageDetail(barTop);
+        int heading = 64;
+        String barTop = "================================================================";
+        String barBot = "||============================================================||";
+        String side = "||";
         int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
-        insertMortgageDetail(
-                String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side));
-        insertMortgageDetail(barBot);
-
         String contentSpacing = String.format("%s%" + (heading - (2 * side.length())) + "s%s", side, " ", side);
-        insertMortgageDetail(contentSpacing);
-
+        String title = String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side);
         int fit = 0;
         for (String s : varName) {
             if (fit < s.length()) {
                 fit = s.length();
             }
         }
-
+        insertMortgageDetail(barTop);
+        insertMortgageDetail(title);
+        insertMortgageDetail(barBot);
+        insertMortgageDetail(contentSpacing);
         for (int i = 0; i < varName.length; i++) {
             int paddingLeft = ((heading / 2) - side.length() - fit);
             int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
-            insertMortgageDetail(String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
-                    " ", varName[i], varValue[i], " ", side));
+            String content = String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
+                    " ", varName[i], varValue[i], " ", side);
+            insertMortgageDetail(content);
             insertMortgageDetail(contentSpacing);
         }
         insertMortgageDetail(barBot);
@@ -198,12 +190,12 @@ public class BankingCreditCLI {
         newLoanMenu();
     }
 
-    static void write(String x) {
-        System.out.print(x);
+    static void write(String s) {
+        System.out.print(s);
     }
 
-    static void writeln(String x) {
-        System.out.println(x);
+    static void writeln(String s) {
+        System.out.println(s);
     }
 
     // endregion
@@ -239,11 +231,6 @@ public class BankingCreditCLI {
     static String promptedTextInput(String prompt) {
         write(prompt);
         return input.next();
-    }
-
-    static String promptedTextLineInput(String prompt) {
-        write(prompt);
-        return input.nextLine();
     }
 
     static double powerDouble(double base, int exponent) {
@@ -299,46 +286,43 @@ public class BankingCreditCLI {
         creditMortgageDetail[getUserID()] += s + "\n";
     }
 
-    static boolean isValidPhoneNumber(String phoneNumber) {
-        return phoneNumber.matches("\\+628\\d{10}") || phoneNumber.matches("628\\d{10}")
-                || phoneNumber.matches("08\\d{10}") || phoneNumber.matches("\\+628\\d{9}")
-                || phoneNumber.matches("628\\d{9}") || phoneNumber.matches("08\\d{9}")
-                || phoneNumber.matches("\\+628\\d{11}") || phoneNumber.matches("628\\d{11}")
-                || phoneNumber.matches("08\\d{11}");
+    static boolean validatePhoneNumber(String numbers) {
+        // 0895388899808 -> 13 digits
+        // 082336750134  -> 12 digits
+        // 08912888374   -> 11 digits
+        int length = numbers.length();
+
+        if (length < 11 || length > 13) return false;
+
+        for (int i = 0; i < length; i++) {
+            // validate if each element is a number
+
+            int current = Integer.parseInt(String.format("%c", numbers.charAt(i)));
+            // first digit should be 0
+            if (i == 0 && current != 0) return false;
+
+            // second digit should be 8
+            if (i == 1 && current != 8) return false;
+        }
+
+        return true;
     }
 
-    static boolean isValidDate(String date) {
-        String[] dateSplit = date.split("@", 6);
-        if (dateSplit[3].length() != 2 || dateSplit[4].length() != 2 || dateSplit[5].length() != 2)
-            return false;
-        String dd, mm, yy;
-        dd = Integer.parseInt(dateSplit[3]) < 40 ? Integer.toString(Integer.parseInt(dateSplit[3]))
-                : Integer.toString(Integer.parseInt(dateSplit[3]) - 40);
-        mm = dateSplit[4];
-        yy = dateSplit[5];
-        boolean leap = false;
-        if ((Integer.parseInt(yy)) % 4 == 0) {
-            if ((Integer.parseInt(yy)) % 100 == 0) {
-                if ((Integer.parseInt(yy)) % 400 == 0) {
-                    leap = true;
+    static boolean validateIDCardNumber(String numbers) {
+        // 3573051004040001
+        // 3573056204040001
+        int length = numbers.length();
+        if (length != 16) return false;
+        for (int i = 0; i < length; i++) {
+            switch (numbers.charAt(i)) {
+                case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' -> {
+                    break;
                 }
-            } else {
-                leap = true;
+                default -> {
+                    return false;
+                }
             }
         }
-        if (mm.equals("1") || mm.equals("3") || mm.equals("5") || mm.equals("7") || mm.equals("8") || mm.equals("10")
-                || mm.equals("12")) {
-            return Integer.parseInt(dd) <= 31 && Integer.parseInt(dd) >= 1;
-        } else if (mm.equals("4") || mm.equals("6") || mm.equals("9") || mm.equals("11")) {
-            return Integer.parseInt(dd) <= 30 && Integer.parseInt(dd) >= 1;
-        } else if (leap) {
-            return Integer.parseInt(dd) <= 29 && Integer.parseInt(dd) >= 1;
-        } else {
-            return Integer.parseInt(dd) <= 28 && Integer.parseInt(dd) >= 1;
-        }
-    }
-
-    static boolean isValidKemendagriCode(String code) {
         return true;
     }
 
@@ -370,55 +354,47 @@ public class BankingCreditCLI {
 
     static void setProfile() {
         int id = getUserID();
-        String userInput;
+        String name, phoneNumber, IDCardNumber, salary;
         write("Enter your name: ");
-        userInput = input.nextLine();
+        name = input.nextLine();
         input.next();
-        profile[id][0] = userInput;
         boolean i = true;
         do {
             write("Enter your phone number: ");
-            userInput = input.nextLine();
+            phoneNumber = input.nextLine();
             input.next();
-            if (isValidPhoneNumber(userInput)) {
-                writeln("Please enter a valid phone number");
-            } else {
+            if (validatePhoneNumber(phoneNumber)) {
                 i = false;
+            } else {
+                writeln("Please enter a valid phone number");
             }
         } while (i);
-        profile[id][1] = userInput;
         writeln("Please enter your ID card number in this format");
-        writeln("(xx xx xx xx xx xx xxxx)");
-        writeln("example: 35 73 05 20 04 69 1337");
+        writeln("example: 3573052004691337");
         i = true;
         do {
             write("Enter your ID card number: ");
-            userInput = input.next();
-            userInput += "@";
-            userInput += input.next();
-            userInput += "@";
-            userInput += input.next();
-            userInput += "@";
-            userInput += input.next();
-            userInput += "@";
-            userInput += input.next();
-            userInput += "@";
-            userInput += input.next();
-            userInput += "@";
-            userInput += input.next();
-            if (/* isValidDate(userInput) && isValidKemendagriCode(userInput) */true) {
+            IDCardNumber = input.next();
+            if (validateIDCardNumber(IDCardNumber)) {
                 i = false;
             } else {
                 writeln("Please enter a valid ID card number");
             }
         } while (i);
-        profile[id][2] = userInput;
-        userInput = promptedTextInput("Enter your salary: ");
-        profile[id][3] = userInput;
-        writeln(profile[id][0]);
-        writeln(profile[id][1]);
-        writeln(profile[id][2]);
-        writeln(profile[id][3]);
+        salary = promptedTextInput("Enter your salary: ");
+
+        if (confirm()) {
+            profile[id][0] = name;
+            profile[id][1] = phoneNumber;
+            profile[id][2] = IDCardNumber;
+            profile[id][3] = salary;
+            writeln(profile[id][0]);
+            writeln(profile[id][1]);
+            writeln(profile[id][2]);
+            writeln(profile[id][3]);
+        } else {
+            setProfile();
+        }
     }
 
     static void mainMenu() {
@@ -612,7 +588,7 @@ public class BankingCreditCLI {
         double inverseReturnOfPoweredInterest = 1 - (1 / powerDouble(interestPowerBase, tenorMonth));
         i = true;
         do {
-            creditLimit = Integer.parseInt(profile[getUserID()][3])
+            creditLimit = installmentMin
                     * (inverseReturnOfPoweredInterest / interestInMonth);
             debtMax = creditLimit * (double) (1 / (1 + (downPaymentPercentage / 100)));
             write(String.format("Maximum proposed debt: %,.0f\n", debtMax));
@@ -639,7 +615,7 @@ public class BankingCreditCLI {
         if (downPayment > downPaymentMin) {
             i = true;
             do {
-                creditLimit = Integer.parseInt(profile[getUserID()][3])
+                creditLimit = installmentMin
                         * (inverseReturnOfPoweredInterest / interestInMonth);
                 double actualDownPaymentPercentage = ((double) downPayment / debt) * 100;
                 debtMax = creditLimit * (1 / (1 + (actualDownPaymentPercentage / 100)));
@@ -688,45 +664,52 @@ public class BankingCreditCLI {
     // endregion
     static void accountInfoMenu() {
         int id = getUserID();
-        int heading = 64;
-        String prompt = "ACCOUNT INFO";
-        String barTop = "================================================================";
-        String barBot = "||============================================================||";
-        String side = "||";
-        String contentSpacing = String.format("%s%" + (heading - (2 * side.length())) + "s%s", side, " ", side);
-        int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
+        if (profile[id][0] != null) {
+            int heading = 64;
+            String prompt = "ACCOUNT INFO";
+            String barTop = "================================================================";
+            String barBot = "||============================================================||";
+            String side = "||";
+            String contentSpacing = String.format("%s%" + (heading - (2 * side.length())) + "s%s", side, " ", side);
+            int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
 
-        String[] varName = {
-                "Name",
-                "Phone number",
-                "ID card number",
-                "salary"
-        };
+            String[] varName = {
+                    "Name",
+                    "Phone number",
+                    "ID card number",
+                    "salary"
+            };
 
-        writeln(barTop);
-        writeln(String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side));
-        writeln(barBot);
-        writeln(contentSpacing);
-
-        int fit = 0;
-        for (String s : varName) {
-            if (fit < s.length()) {
-                fit = s.length();
-            }
-        }
-
-        for (int i = 0; i < varName.length; i++) {
-            int paddingLeft = ((heading / 2) - side.length() - fit);
-            int paddingRight = ((heading / 2) - side.length() - profile[id][i].length());
-            writeln(String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
-                    " ", varName[i], String.format(": %s", profile[id][i]), " ", side));
+            writeln(barTop);
+            writeln(String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side));
+            writeln(barBot);
             writeln(contentSpacing);
-        }
-        writeln(barBot);
 
+            int fit = 0;
+            for (String s : varName) {
+                if (fit < s.length()) {
+                    fit = s.length();
+                }
+            }
+
+            for (int i = 0; i < varName.length; i++) {
+                int paddingLeft = ((heading / 2) - side.length() - fit);
+                int paddingRight = ((heading / 2) - side.length() - profile[id][i].length());
+                writeln(String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
+                        " ", varName[i], String.format(": %s", profile[id][i]), " ", side));
+                writeln(contentSpacing);
+            }
+            writeln(barBot);
+        } else {
         printHeading("ACCOUNT INFO");
         notFound();
-        mainMenu();
+        }
+        write("Exit?");
+        if (confirm()) {
+            mainMenu();
+        } else {
+            accountInfoMenu();
+        }
     }
 
     static void quitMenu() {
