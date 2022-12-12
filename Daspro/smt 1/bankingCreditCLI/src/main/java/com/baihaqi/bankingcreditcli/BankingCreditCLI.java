@@ -120,76 +120,6 @@ public class BankingCreditCLI {
         }
     }
 
-    static void mortgageApplicationDetail(double... detail) {
-        int id = getUserID();
-        String prompt = "Mortgage Application";
-        String ordinal;
-        switch (String.valueOf(detail[3]).charAt(String.valueOf(detail[3]).length() - 1)) {
-            case '1' -> ordinal = "st";
-            case '2' -> ordinal = "nd";
-            case '3' -> ordinal = "rd";
-            default -> ordinal = "th";
-        }
-        double downPaymentPercentageByDebt = (detail[2] / detail[0]) * 100;
-
-        String[] varValue = {
-                String.format(": %.0f%s", detail[3], ordinal),
-                String.format(": IDR %,.0f", detail[0]),
-                String.format(": IDR %,.0f", detail[2]),
-                String.format(": IDR %,.0f", (detail[0] - detail[2])),
-                String.format(": %.0f", detail[1]),
-                String.format(": %.2f%s", detail[4], "%"),
-                String.format(": IDR %,.2f", detail[5]),
-                String.format(": IDR %,.2f", (detail[5] * 2))
-        };
-
-        String[] varName = {
-
-                "Credit facility ",
-                "House price ",
-                String.format("Down payment %.2f%s ", downPaymentPercentageByDebt, "%"),
-                "Debt principal ",
-                "Tenor ",
-                "Interest ",
-                "installment ",
-                "Minimum income "
-        };
-        int heading = 64;
-        String barTop = "================================================================";
-        String barBot = "||============================================================||";
-        String side = "||";
-        int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
-        String contentSpacing = String.format("%s%" + (heading - (2 * side.length())) + "s%s", side, " ", side);
-        String title = String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side);
-        int fit = 0;
-        for (String s : varName) {
-            if (fit < s.length()) {
-                fit = s.length();
-            }
-        }
-        insertMortgageDetail(barTop);
-        insertMortgageDetail(title);
-        insertMortgageDetail(barBot);
-        insertMortgageDetail(contentSpacing);
-        for (int i = 0; i < varName.length; i++) {
-            int paddingLeft = ((heading / 2) - side.length() - fit);
-            int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
-            String content = String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
-                    " ", varName[i], varValue[i], " ", side);
-            insertMortgageDetail(content);
-            insertMortgageDetail(contentSpacing);
-        }
-        insertMortgageDetail(barBot);
-
-        if (confirm()) {
-            creditMortgage[id][0] = detail[0];
-            creditMortgage[id][1] = detail[1];
-            creditMortgage[id][2] = detail[2];
-            creditMortgage[id][3] = detail[5];
-        }
-        newLoanMenu();
-    }
-
     static void write(String s) {
         System.out.print(s);
     }
@@ -288,23 +218,25 @@ public class BankingCreditCLI {
 
     static boolean validatePhoneNumber(String numbers) {
         // 0895388899808 -> 13 digits
-        // 082336750134  -> 12 digits
-        // 08912888374   -> 11 digits
+        // 082336750134 -> 12 digits
+        // 08912888374 -> 11 digits
         int length = numbers.length();
 
-        if (length < 11 || length > 13) return false;
+        if (length < 11 || length > 13)
+            return false;
 
         for (int i = 0; i < length; i++) {
             // validate if each element is a number
 
             int current = Integer.parseInt(String.format("%c", numbers.charAt(i)));
             // first digit should be 0
-            if (i == 0 && current != 0) return false;
+            if (i == 0 && current != 0)
+                return false;
 
             // second digit should be 8
-            if (i == 1 && current != 8) return false;
+            if (i == 1 && current != 8)
+                return false;
         }
-
         return true;
     }
 
@@ -312,7 +244,8 @@ public class BankingCreditCLI {
         // 3573051004040001
         // 3573056204040001
         int length = numbers.length();
-        if (length != 16) return false;
+        if (length != 16)
+            return false;
         for (int i = 0; i < length; i++) {
             switch (numbers.charAt(i)) {
                 case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' -> {
@@ -355,14 +288,13 @@ public class BankingCreditCLI {
     static void setProfile() {
         int id = getUserID();
         String name, phoneNumber, IDCardNumber, salary;
+        input.nextLine();
         write("Enter your name: ");
         name = input.nextLine();
-        input.next();
         boolean i = true;
         do {
             write("Enter your phone number: ");
-            phoneNumber = input.nextLine();
-            input.next();
+            phoneNumber = input.next();
             if (validatePhoneNumber(phoneNumber)) {
                 i = false;
             } else {
@@ -524,25 +456,27 @@ public class BankingCreditCLI {
     }
 
     static void mortgageLoanApplication() {
+        int id = getUserID();
         int buildingArea;
         int creditFacilities;
         int downPayment;
         int downPaymentPercentage = 10;
         int tenor;
         int debt;
-        int salary = Integer.parseInt(profile[getUserID()][3]);
+        int salary = Integer.parseInt(profile[id][3]);
         double installment;
         double interest = 7.25;
         double creditLimit;
         double debtMax;
         double installmentMin = salary < 5_000_000 ? salary * 0.5 : salary * 0.55;
+        double salaryMin;
         printHeading("MORTGAGE LOAN");
         writeln("""
                 Purpose of Credit
                 1. Buying a house
                 2. Renovating""");
-        String s = promptedTextInput("menu: ");
-        if (s.equals("1")) {
+        String menu = promptedTextInput("menu: ");
+        if (menu.equals("1")) {
             writeln("""
                     Collateral Type
                     1. House
@@ -555,88 +489,169 @@ public class BankingCreditCLI {
                 if (buildingArea > 70)
                     downPaymentPercentage += 5;
             }
-        } else if (s.equals("2")) {
+        } else if (menu.equals("2")) {
             downPaymentPercentage += 20;
         }
         writeln("How many Credit Facilities do you have");
-        boolean i = true;
+        boolean repeat = true;
         do {
             write("Credit Facility: ");
             creditFacilities = input.nextInt();
             if (creditFacilities < 1) {
                 writeln("Please enter a positive value!");
             } else {
-                i = false;
+                repeat = false;
             }
-        } while (i);
+        } while (repeat);
         if (creditFacilities > 2)
             downPaymentPercentage += 10;
         writeln("Maximum 20 years tenor");
-        i = true;
+        repeat = true;
         do {
             write("Tenor: ");
             tenor = input.nextInt();
             if (tenor < 1 || tenor > 20) {
                 writeln("Please enter a value between 1 to 20");
             } else {
-                i = false;
+                repeat = false;
             }
-        } while (i);
+        } while (repeat);
         double interestInMonth = ((interest / 100) / 12);
         double interestPowerBase = (1 + ((interest / 100) / 12));
         int tenorMonth = tenor * 12;
         double inverseReturnOfPoweredInterest = 1 - (1 / powerDouble(interestPowerBase, tenorMonth));
-        i = true;
+        repeat = true;
         do {
             creditLimit = installmentMin
                     * (inverseReturnOfPoweredInterest / interestInMonth);
-            debtMax = creditLimit * (double) (1 / (1 + (downPaymentPercentage / 100)));
+            debtMax = creditLimit * (1 / ((double) (100 - downPaymentPercentage) / 100));
             write(String.format("Maximum proposed debt: %,.0f\n", debtMax));
             write("House price: ");
             debt = input.nextInt();
             if (debt > debtMax) {
                 writeln("Please enter a value smaller than the maximum");
             } else {
-                i = false;
+                repeat = false;
             }
-        } while (i);
-        write(String.format("Minimum down payment amount: %,d\n", (debt / 100) * downPaymentPercentage));
-        i = true;
+        } while (repeat);
+        write(String.format("Minimum down payment amount: %,.0f\n", (double) (debt / 100) * downPaymentPercentage));
+        repeat = true;
         do {
             write("Down payment: ");
             downPayment = input.nextInt();
             if (downPayment < (debt / 100) * downPaymentPercentage) {
                 writeln("Please enter a value bigger than the minimum!");
             } else {
-                i = false;
+                repeat = false;
             }
-        } while (i);
-        double downPaymentMin = (double) (debt / 100) * downPaymentPercentage;
-        if (downPayment > downPaymentMin) {
-            i = true;
+        } while (repeat);
+        // region to be refactored as a function
+        if (downPayment > (double) (debt / 100) * downPaymentPercentage) {
+            repeat = true;
             do {
                 creditLimit = installmentMin
                         * (inverseReturnOfPoweredInterest / interestInMonth);
-                double actualDownPaymentPercentage = ((double) downPayment / debt) * 100;
-                debtMax = creditLimit * (1 / (1 + (actualDownPaymentPercentage / 100)));
+                debtMax = creditLimit + downPayment;
                 write(String.format("Maximum proposed debt: %,.0f\n", debtMax));
                 write("House price: ");
                 debt = input.nextInt();
                 if (debt > debtMax) {
                     writeln("Please enter a value smaller than the maximum");
                 } else {
-                    i = false;
+                    repeat = false;
                 }
-            } while (i);
+            } while (repeat);
         }
+        if (downPayment < (double) (debt / 100) * downPaymentPercentage) {
+            write(String.format("Minimum down payment amount: %,.0f\n", (double) (debt / 100) * downPaymentPercentage));
+            repeat = true;
+            do {
+                write("Down payment: ");
+                downPayment = input.nextInt();
+                if (downPayment < (debt / 100) * downPaymentPercentage) {
+                    writeln("Please enter a value bigger than the minimum!");
+                } else {
+                    repeat = false;
+                }
+            } while (repeat);
+        }
+        // endregion
         double debtInterest = (debt - downPayment) * interestInMonth;
 
         installment = debtInterest / inverseReturnOfPoweredInterest;
+        salaryMin = installment < 2_500_000 ? installment * 2 : installment * (1 / 0.55);
         write(String.format("%14s IDR %,d\n", "Installment", (long) installment));
         write(String.format("%14s IDR %,d\n", "Debt principal", (debt - downPayment)));
-        write(String.format("%14s IDR %,d\n", "Minimum Income", (long) installment * 2));
+        write(String.format("%14s IDR %,d\n", "Minimum Income", (long) salaryMin));
 
-        mortgageApplicationDetail(debt, tenor, downPayment, creditFacilities, interest, installment);
+        String prompt = "Mortgage Application";
+        String ordinal;
+        switch (String.valueOf(creditFacilities).charAt(String.valueOf(creditFacilities).length() - 1)) {
+            case '1' -> ordinal = "st";
+            case '2' -> ordinal = "nd";
+            case '3' -> ordinal = "rd";
+            default -> ordinal = "th";
+        }
+        double downPaymentPercentageByDebt = ((double) downPayment / debt) * 100;
+
+        String[] varValue = {
+                String.format(": %d%s", creditFacilities, ordinal),
+                String.format(": IDR %,d", debt),
+                String.format(": IDR %,d", downPayment),
+                String.format(": IDR %,d", (debt - downPayment)),
+                String.format(": %d", tenor),
+                String.format(": %.2f%s", interest, "%"),
+                String.format(": IDR %,.2f", installment),
+                String.format(": IDR %,.2f", salaryMin)
+        };
+
+        String[] varName = {
+
+                "Credit facility ",
+                "House price ",
+                String.format("Down payment %.2f%s ", downPaymentPercentageByDebt, "%"),
+                "Debt principal ",
+                "Tenor ",
+                "Interest ",
+                "installment ",
+                "Minimum income "
+        };
+
+        String barTop = "================================================================";
+        String barBot = "||============================================================||";
+        String side = "||";
+        int heading = barTop.length();
+        int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
+        String contentSpacing = String.format("%s%" + (heading - (2 * side.length())) + "s%s", side, " ", side);
+        String title = String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ",
+                side);
+        int fit = 0;
+        for (String varNameElement : varName) {
+            if (fit < varNameElement.length()) {
+                fit = varNameElement.length();
+            }
+        }
+        insertMortgageDetail(barTop);
+        insertMortgageDetail(title);
+        insertMortgageDetail(barBot);
+        insertMortgageDetail(contentSpacing);
+        for (int i = 0; i < varName.length; i++) {
+            int paddingLeft = ((heading / 2) - side.length() - fit);
+            int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
+            String content = String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
+                    " ", varName[i], varValue[i], " ", side);
+            insertMortgageDetail(content);
+            insertMortgageDetail(contentSpacing);
+        }
+        insertMortgageDetail(barBot);
+
+        if (confirm()) {
+            creditMortgage[id][0] = debt;
+            creditMortgage[id][1] = tenor;
+            creditMortgage[id][2] = downPayment;
+            creditMortgage[id][3] = installment;
+        }
+        newLoanMenu();
     }
 
     static void refinancingLoanApplication() {
@@ -665,46 +680,60 @@ public class BankingCreditCLI {
     static void accountInfoMenu() {
         int id = getUserID();
         if (profile[id][0] != null) {
-            int heading = 64;
+            String content;
             String prompt = "ACCOUNT INFO";
-            String barTop = "================================================================";
-            String barBot = "||============================================================||";
+            String barTop = "================================================================================";
+            String barBot = "||============================================================================||";
             String side = "||";
+            int heading = barTop.length();
             String contentSpacing = String.format("%s%" + (heading - (2 * side.length())) + "s%s", side, " ", side);
-            int headingSpacing = (heading - (2 * side.length()) - prompt.length()) / 2;
+            int titlePadding = (heading - (2 * side.length()) - prompt.length()) / 2;
 
             String[] varName = {
-                    "Name",
-                    "Phone number",
-                    "ID card number",
-                    "salary"
+                    "Name ",
+                    "Phone number ",
+                    "ID card number ",
+                    "salary "
             };
+            String title = String.format("%s%" + titlePadding + "s%s%" + titlePadding + "s%s", side, " ", prompt, " ",
+                    side);
 
             writeln(barTop);
-            writeln(String.format("%s%" + headingSpacing + "s%s%" + headingSpacing + "s%s", side, " ", prompt, " ", side));
+            writeln(title);
             writeln(barBot);
             writeln(contentSpacing);
 
-            int fit = 0;
-            for (String s : varName) {
-                if (fit < s.length()) {
-                    fit = s.length();
+            int fitVarName = 0;
+            for (String varNameElement : varName) {
+                if (fitVarName < varNameElement.length()) {
+                    fitVarName = varNameElement.length();
+                }
+            }
+            int fitVarValue = 0;
+            for (String varValueElement : profile[id]) {
+                if (fitVarValue < varValueElement.length()) {
+                    fitVarValue = varValueElement.length();
                 }
             }
 
             for (int i = 0; i < varName.length; i++) {
-                int paddingLeft = ((heading / 2) - side.length() - fit);
-                int paddingRight = ((heading / 2) - side.length() - profile[id][i].length());
-                writeln(String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
-                        " ", varName[i], String.format(": %s", profile[id][i]), " ", side));
+                String var = String.format("%-" + fitVarName + "s: %-" + fitVarValue + "s", varName[i], profile[id][i]);
+                int padding = (heading - (side.length() * 2)
+                        - (var.length() % 2 == 0 ? var.length() : (var.length() + 1))) / 2;
+                if (var.length() % 2 != 0) {
+                    content = String.format("%s%" + padding + "s%s%" + padding + "s %s", side, " ", var, " ", side);
+                } else {
+                    content = String.format("%s%" + padding + "s%s%" + padding + "s%s", side, " ", var, " ", side);
+                }
+                writeln(content);
                 writeln(contentSpacing);
             }
             writeln(barBot);
         } else {
-        printHeading("ACCOUNT INFO");
-        notFound();
+            printHeading("ACCOUNT INFO");
+            notFound();
         }
-        write("Exit?");
+        write("Exit?\n");
         if (confirm()) {
             mainMenu();
         } else {
