@@ -1,0 +1,27 @@
+graph TD
+start([start]) --> global
+subgraph global
+    prepare{{"Prepare data and Scanner"}}
+    prepare --- data1["credential"]
+    prepare --- data2["username"]
+    prepare --- data3["creditMortgage"]
+    prepare --- data4["creditMortgageDetail"]
+    prepare --- data5["profile"]
+end 
+global --> main
+subgraph main
+    credential1["credential[0][0] = #quot;admin#quot;"]
+    credential2["credential[0][1] = #quot;admin#quot;"]
+    loginMain(["loginMenu()"])
+    credential1 --> credential2 --> loginMain
+end
+loginMain --> loginMenu
+subgraph loginMenu
+    login(["loginMenu()"]) --> printHeadingLOGIN 
+    printHeadingLOGIN["printHeading(#quot;LOGIN#quot;)"]
+    printPromptSplitLOGIN["printPromptSplit(Login guide)"]
+end
+printHeadingLOGIN -->|"#quot;LOGIN#quot;"| printHeadingsub --> printPromptSplitLOGIN 
+subgraph printHeadingsub
+    printHeading(["printHeading(String prompt)"])
+end
