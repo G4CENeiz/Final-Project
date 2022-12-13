@@ -259,6 +259,50 @@ public class BankingCreditCLI {
         return true;
     }
 
+    static int[] debtReadjustment(double installmentMin, double inverseReturnOfPoweredInterest, double interestInMonth, int downPayment, int downPaymentPercentage) {
+        boolean repeat = true;
+        double creditLimit;
+        double debtMax;
+        int debt;
+        int[] out = new int[2];
+        do {
+            creditLimit = installmentMin
+                    * (inverseReturnOfPoweredInterest / interestInMonth);
+            debtMax = creditLimit + downPayment;
+            write(String.format("Maximum proposed debt: %,.0f\n", debtMax));
+            write("House price: ");
+            debt = input.nextInt();
+            if (debt > debtMax) {
+                writeln("Please enter a value smaller than the maximum");
+            } else {
+                repeat = false;
+            }
+        } while (repeat);
+        if (downPayment < (double) (debt / 100) * downPaymentPercentage) {
+            write(String.format("Minimum down payment amount: %,.0f\n", (double) (debt / 100) * downPaymentPercentage));
+            repeat = true;
+            do {
+                write("Down payment: ");
+                downPayment = input.nextInt();
+                if (downPayment < (debt / 100) * downPaymentPercentage) {
+                    writeln("Please enter a value bigger than the minimum!");
+                } else {
+                    repeat = false;
+                }
+            } while (repeat);
+        } else {
+            out[0] = debt;
+            out[1] = downPayment;
+            return out;
+        }
+        if (downPayment > (double) (debt / 100) * downPaymentPercentage) {
+            out = debtReadjustment(installmentMin, inverseReturnOfPoweredInterest, interestInMonth, downPayment,downPaymentPercentage);
+        }
+        out[0] = debt;
+        out[1] = downPayment;
+        return out;
+    }
+
     // endregion
     // region menu
     static void loginMenu() {
@@ -547,33 +591,9 @@ public class BankingCreditCLI {
         } while (repeat);
         // region to be refactored as a function
         if (downPayment > (double) (debt / 100) * downPaymentPercentage) {
-            repeat = true;
-            do {
-                creditLimit = installmentMin
-                        * (inverseReturnOfPoweredInterest / interestInMonth);
-                debtMax = creditLimit + downPayment;
-                write(String.format("Maximum proposed debt: %,.0f\n", debtMax));
-                write("House price: ");
-                debt = input.nextInt();
-                if (debt > debtMax) {
-                    writeln("Please enter a value smaller than the maximum");
-                } else {
-                    repeat = false;
-                }
-            } while (repeat);
-        }
-        if (downPayment < (double) (debt / 100) * downPaymentPercentage) {
-            write(String.format("Minimum down payment amount: %,.0f\n", (double) (debt / 100) * downPaymentPercentage));
-            repeat = true;
-            do {
-                write("Down payment: ");
-                downPayment = input.nextInt();
-                if (downPayment < (debt / 100) * downPaymentPercentage) {
-                    writeln("Please enter a value bigger than the minimum!");
-                } else {
-                    repeat = false;
-                }
-            } while (repeat);
+            int[] out = debtReadjustment(installmentMin, inverseReturnOfPoweredInterest, interestInMonth, downPayment,downPaymentPercentage);
+            debt = out[0];
+            downPayment = out[1];
         }
         // endregion
         double debtInterest = (debt - downPayment) * interestInMonth;
