@@ -595,12 +595,13 @@ public class BankingCreditCLI {
             downPayment = out[1];
         }
         // endregion
-        double debtInterest = (debt - downPayment) * interestInMonth;
+        double debtPrincipal = (tenor < 6 ? (debt - downPayment) * 0.9 : (debt - downPayment));
+        double debtInterest = debtPrincipal * interestInMonth;
 
         installment = debtInterest / inverseReturnOfPoweredInterest;
         salaryMin = installment < 2_500_000 ? installment * 2 : installment * (1 / 0.55);
         write(String.format("%14s IDR %,d\n", "Installment", (long) installment));
-        write(String.format("%14s IDR %,d\n", "Debt principal", (debt - downPayment)));
+        write(String.format("%14s IDR %,d\n", "Debt principal", (long) debtPrincipal));
         write(String.format("%14s IDR %,d\n", "Minimum Income", (long) salaryMin));
 
         String prompt = "Mortgage Application";
@@ -618,6 +619,7 @@ public class BankingCreditCLI {
                 String.format(": IDR %,d", debt),
                 String.format(": IDR %,d", downPayment),
                 String.format(": IDR %,d", (debt - downPayment)),
+                String.format(": IDR %,.0f", debtPrincipal),
                 String.format(": %d", tenor),
                 String.format(": %.2f%s", interest, "%"),
                 String.format(": IDR %,.2f", installment),
@@ -630,6 +632,7 @@ public class BankingCreditCLI {
                 "House price ",
                 String.format("Down payment %.2f%s ", downPaymentPercentageByDebt, "%"),
                 "Debt principal ",
+                "Debt principal discounted ",
                 "Tenor ",
                 "Interest ",
                 "installment ",
@@ -655,6 +658,11 @@ public class BankingCreditCLI {
         insertMortgageDetail(barBot);
         insertMortgageDetail(contentSpacing);
         for (int i = 0; i < varName.length; i++) {
+            if (debtPrincipal == (debt - downPayment)) {
+                if (i == 4) {
+                    continue;
+                }
+            }
             int paddingLeft = ((heading / 2) - side.length() - fit);
             int paddingRight = ((heading / 2) - side.length() - varValue[i].length());
             String content = String.format("%s%" + paddingLeft + "s%-" + fit + "s%s%" + paddingRight + "s%s", side,
@@ -669,6 +677,8 @@ public class BankingCreditCLI {
             creditMortgage[id][1] = tenor;
             creditMortgage[id][2] = downPayment;
             creditMortgage[id][3] = installment;
+        } else {
+        creditMortgageDetail[id] = "";
         }
         newLoanMenu();
     }
