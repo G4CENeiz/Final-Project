@@ -454,6 +454,7 @@ public class BankingCreditCLI {
     }
 
     // endregion
+    
     static void loanMenu() {
         printHeading("LOAN");
         writeln("""
@@ -690,6 +691,7 @@ public class BankingCreditCLI {
     }
 
     // endregion
+    
     static void accountLoanInfo() {
         printHeading("LOAN STATUS");
         if (creditMortgage[getUserID()][0] == 0) {
